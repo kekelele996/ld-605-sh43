@@ -1,0 +1,1 @@
+package com.generated.waterLeak.repositories; import java.util.*; import org.springframework.stereotype.Repository; @Repository public class PipelineSegmentRepository { public List<Map<String,Object>> findAll(){ return List.of(Map.of("id",1,"name","管网分段","status","READY")); } }
