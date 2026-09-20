@@ -1,1 +1,8 @@
-package com.generated.waterLeak.repositories; import java.util.*; import org.springframework.stereotype.Repository; @Repository public class InspectionPointRepository { public List<Map<String,Object>> findAll(){ return List.of(Map.of("id",1,"name","巡检点","status","READY")); } }
+package com.generated.waterLeak.repositories;
+
+import com.generated.waterLeak.models.InspectionPoint;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface InspectionPointRepository extends JpaRepository<InspectionPoint, Long> {}

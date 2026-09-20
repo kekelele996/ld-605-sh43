@@ -52,11 +52,38 @@ backend/src/routes, controllers, services, models, repositories, middlewares, co
 - 数据库使用命名卷，避免绑定中文路径。
 - 常见问题：端口占用时修改 `.env` 中端口后重启；需要重置数据时执行 `docker compose down -v`。
 
+## 风险联巡：漏损核查到维修验收
+
+核心页面「风险联巡」`/risk-joint-inspection` 在一个页面完成 **上报 → 核实 → 派工 → 领料 → 验收** 全流程，所有状态落库，刷新后仍能读到最新状态与阻塞原因。
+
+业务规则：
+
+1. **漏损核查队列排序**：漏损级别 BURST→TRACE → 管段风险 EXTREME→LOW → 同分看巡检超期天数（超期多者优先）。
+2. **BURST 未核实不能派工**：`verify_status != VERIFIED` 的 BURST 报告派工返回 `BURST_UNVERIFIED`（409）。
+3. **同一维修队同一天只能有一张未关闭维修单**：数据库部分唯一索引 `ux_repair_order_crew_day_open (crew_id, work_date) WHERE status <> 'CLOSED'` 兜底，并发派工只成功一单，其余收到 `CREW_DAY_CONFLICT`（409）。
+4. **领料和验收在同一事务**：`POST /api/repair-orders/{id}/accept` 先按行锁扣库存、写 PICKED 流水，验收不通过则整体回滚（不扣料、不关单，`ACCEPTANCE_FAILED`）；通过才转 CONSUMED 并关单。
+
+主要接口：
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/leak-reports/verification-queue` | 核查队列（含 overdue_days、dispatchable、blocked_reason） |
+| POST | `/api/leak-reports` | 漏损上报（默认 PENDING） |
+| POST | `/api/leak-reports/{id}/verify` | 核实：VERIFIED / REJECTED |
+| GET | `/api/repair-orders` | 维修单列表 |
+| POST | `/api/repair-orders/dispatch` | 派工（BURST 未核实 / 同队同日冲突返回 409） |
+| POST | `/api/repair-orders/{id}/accept` | 领料 + 验收（同事务） |
+| GET | `/api/crews` `/api/material-stocks` `/api/material-usages` `/api/audit-logs` | 维修队 / 库存 / 材料流水 / 操作日志 |
+
+后端集成测试 `RiskJointInspectionFlowTest`（内嵌 PostgreSQL，真实执行 `database/init.sql`）覆盖以上全部规则：`cd backend && mvn test`。
+
 ## 枚举/常量出现位置清单
 
 - LeakLevel: constants/LeakLevel、types/LeakLevel、constructors、logTemplates、errorMessages、筛选器、展示组件/控制器均有引用。
 - RepairStatus: constants/RepairStatus、types/RepairStatus、constructors、logTemplates、errorMessages、筛选器、展示组件/控制器均有引用。
 - RiskLevel: constants/RiskLevel、types/RiskLevel、constructors、logTemplates、errorMessages、筛选器、展示组件/控制器均有引用。
+- VerifyStatus: backend `constants/VerifyStatus.java`、frontend `constants/VerifyStatus.ts`，核实接口、核查队列阻塞判定（BURST_UNVERIFIED）与页面核实按钮引用。
+- CheckFrequency: backend `constants/CheckFrequency.java`、frontend `constants/CheckFrequency.ts`，用于巡检超期天数计算与队列同分排序。
 
 ## 为什么会牵一发动全身
 

@@ -1,5 +1,9 @@
 export const routes = [
   {
+    "name": "风险联巡",
+    "route": "/risk-joint-inspection"
+  },
+  {
     "name": "漏损态势",
     "route": "/dashboard"
   },
