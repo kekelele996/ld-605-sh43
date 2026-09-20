@@ -1,14 +1,14 @@
 import type { InspectionPoint } from "../types/InspectionPoint";
 
 export const createDefaultInspectionPoint = (overrides: Partial<InspectionPoint> = {}): InspectionPoint => ({
-  id: 1 as never,
-  pipeline_segment_id: 1 as never,
-  point_code: "point code 1" as never,
-  point_type: "MINOR" as never,
-  address_desc: "address desc 1" as never,
-  check_frequency: "check frequency 1" as never,
-  last_checked_at: "2026-06-11T09:00:00Z" as never,
-  status: "ASSIGNED" as never,
+  id: 0,
+  pipeline_segment_id: 0,
+  point_code: "",
+  point_type: "阀门井",
+  address_desc: "",
+  check_frequency: "30d",
+  last_checked_at: "",
+  status: "ACTIVE",
   ...overrides
 });
 

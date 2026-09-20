@@ -1,21 +1,30 @@
 import { mockData } from "../mocks/seedData";
-import type { LeakReport } from "../types/LeakReport";
+import type { LeakReportView } from "../types/LeakReportView";
+import { post, request } from "./http";
 
 const endpoint = "/api/leak-report";
 
-export async function listLeakReport(): Promise<LeakReport[]> {
-  if (typeof fetch !== "undefined" && endpoint.startsWith("/api") && true) {
-    try {
-      const res = await fetch(endpoint);
-      if (res.ok) return await res.json();
-    } catch {
-      // Local mock fallback keeps the UI available during offline review.
-    }
-  }
-  return [...(mockData.leakReport as unknown as LeakReport[])];
+export interface LeakReportCreatePayload {
+  reporterType: string;
+  pointId: number;
+  leakLevel: string;
+  description?: string;
+  photoUrl?: string;
 }
 
-export async function saveLeakReport(payload: LeakReport) {
-  console.info("save LeakReport", payload);
-  return payload;
+export async function listLeakReport(): Promise<LeakReportView[]> {
+  try {
+    return await request<LeakReportView[]>(endpoint);
+  } catch {
+    // 本地 mock 兜底，保证离线评审时页面可用。
+    return [...(mockData.leakReport as unknown as LeakReportView[])];
+  }
+}
+
+export function createLeakReport(payload: LeakReportCreatePayload) {
+  return post<{ id: number; verify_status: string }>(endpoint, payload);
+}
+
+export function verifyLeakReport(id: number, result: "VERIFIED" | "REJECTED") {
+  return post<{ id: number; verify_status: string }>(`${endpoint}/${id}/verify`, { result });
 }

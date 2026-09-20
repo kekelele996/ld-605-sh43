@@ -7,4 +7,5 @@ export interface LeakReport {
   reported_at: string;
   verify_status: string;
   photo_url: string;
+  block_reason: string | null;
 }

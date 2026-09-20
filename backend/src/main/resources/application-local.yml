@@ -1,0 +1,18 @@
+# 本地无 Docker 调试专用：mvn spring-boot:run -Dspring-boot.run.profiles=local
+# 使用内存 H2，表结构由 JPA 实体生成，种子数据来自 data.sql（仅嵌入式数据源执行）。
+server:
+  port: 21105
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:waterleak;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: embedded
